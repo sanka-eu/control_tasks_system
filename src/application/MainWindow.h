@@ -2,13 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <ui_MainWindow>
+#include "ui_MainWindow.h"
 #include <memory>
-
-namespace Ui
-{
-    class MainWindow;
-} // namespace Ui
 
 class MainWindow: public QMainWindow
 {
@@ -18,7 +13,7 @@ public:
     MainWindow(QWidget *parent = 0);
 
 private:
-    std::shared_ptr<Ui::MainWindow> m_ui;
+    Ui::MainWindow m_ui;
 
 }; // class MainWindow
 

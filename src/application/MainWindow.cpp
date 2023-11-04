@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 
-MainWindow::MainWindow():
-    m_ui(std::make_shared<Ui::MainWindow>())
+MainWindow::MainWindow(QWidget *parent):
+    QMainWindow(parent)
 {
-    m_ui->setupUi(this);
+    m_ui.setupUi(this);
 }

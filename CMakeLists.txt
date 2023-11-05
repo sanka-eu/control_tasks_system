@@ -5,8 +5,4 @@ project(control_tasks_system DESCRIPTION "Система контроля исп
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
 add_subdirectory(src/application)

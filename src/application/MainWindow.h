@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include "ui_MainWindow.h"
-#include <memory>
 
 class MainWindow: public QMainWindow
 {
@@ -13,7 +12,7 @@ public:
     MainWindow(QWidget *parent = 0);
 
 private:
-    Ui::MainWindow m_ui;
+    std::shared_ptr<Ui::MainWindow> m_ui;
 
 }; // class MainWindow
 

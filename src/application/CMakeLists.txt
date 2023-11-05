@@ -1,11 +1,19 @@
-set(Qt5_DIR C:/Qt/5.15.2/msvc2019_64/lib/cmake/Qt5)
+set(Qt5_DIR C:/Qt/5.15.2/mingw81_64/lib/cmake/Qt5)
 
-find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+if(CMAKE_VERSION VERSION_LESS "3.7.0")
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+endif()
 
 add_executable(app
-    MainWindow.ui
-    MainWindow.cpp
     main.cpp
+    MainWindow.cpp
+    MainWindow.ui
 )
 
 target_link_libraries(app Qt5::Widgets)

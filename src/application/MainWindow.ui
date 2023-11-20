@@ -65,7 +65,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="changData">
+         <widget class="QPushButton" name="changeData">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Ignored">
             <horstretch>0</horstretch>

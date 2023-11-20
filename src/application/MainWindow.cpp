@@ -5,4 +5,11 @@ MainWindow::MainWindow(QWidget *parent):
     m_ui(std::make_shared<Ui::MainWindow>())
 {
     m_ui->setupUi(this);
+
+    connect(m_ui->changeData, &QPushButton::clicked, this, changeDataSlot);
+}
+
+void MainWindow::changeDataSlot()
+{
+    qDebug("change data slot");
 }

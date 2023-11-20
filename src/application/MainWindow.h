@@ -11,6 +11,9 @@ class MainWindow: public QMainWindow
 public:
     MainWindow(QWidget *parent = 0);
 
+private slots:
+    void changeDataSlot();
+
 private:
     std::shared_ptr<Ui::MainWindow> m_ui;
 

@@ -10,10 +10,13 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
+add_subdirectory(changeDataBD)
+add_subdirectory(changeDataWidget)
+
 add_executable(app
     main.cpp
     MainWindow.cpp
     MainWindow.ui
 )
 
-target_link_libraries(app Qt5::Widgets)
+target_link_libraries(app changeData Qt5::Widgets)

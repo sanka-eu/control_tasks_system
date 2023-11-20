@@ -12,4 +12,11 @@ MainWindow::MainWindow(QWidget *parent):
 void MainWindow::changeDataSlot()
 {
     qDebug("change data slot");
+    
+    QDialog *changeDataWidget = new QDialog(this);
+    
+    std::shared_ptr<Ui::ChangeDataWidget> changeDataUi = std::make_shared<Ui::ChangeDataWidget>();
+    changeDataUi->setupUi(changeDataWidget);
+    
+    changeDataWidget->show();
 }

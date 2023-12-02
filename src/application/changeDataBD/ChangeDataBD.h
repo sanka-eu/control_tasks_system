@@ -1,24 +1,47 @@
+#pragma once
 #ifndef CHANGEDATABD_H
 #define CHANGEDATABD_H
-
-
+#include <string>
+#include <libpq-fe.h>
+#include <iostream>
+#include <sstream>
+class user
+{
+public:
+    std::string login;
+    std::string password;
+    std::string workerId;
+    std::string userType;
+};
 class ChangeDataBD
 {
 
 public:
     ChangeDataBD();
-
-    //РјРµС‚РѕРґС‹ РјРµРЅСЏСЋС‚ РїРѕР»Рµ Р‘Р” РѕР±СЉСЏРІР»РµРЅРЅРѕРµ РІ private СЃРµРєС†РёРё, РІРѕР·РІСЂР°С‰Р°СЋС‚ true РµСЃР»Рё РёР·РјРµРЅРµРЅРёРµ РїСЂРѕС€Р»Рѕ СѓРґР°С‡РЅРѕ, РµСЃР»Рё РЅРµС‚ - false
-    bool addUser();
-    bool changeUser();
-    bool deleteUser();
-    bool addAssigment();
-    bool changeAssigment();
-    bool deleteAssigment();
-
+    ~ChangeDataBD();
+    bool connectDB();
+    void disconnectDB();
+    //методы меняют поле БД объявленное в private секции, возвращают true если изменение прошло удачно, если нет - false
+    bool addUser(std::string login, std::string password, std::string userType);
+    bool changeUser(std::string login, std::string newPassword, std::string newWorkerId, std::string newUserType);
+    bool deleteUser(std::string login);
+    bool addAssigment(const char* department, const std::string& issueDate, const std::string& dueDate, bool taken, bool overdue, const std::string& issuedByLogin);
+    bool changeAssigment(const std::string& assignmentId, const std::string& newIssueDate, const std::string& newDueDate, bool newTaken, bool newOverdue);
+    bool deleteAssigment(const std::string& assignmentId);
+    bool addDepartment(const std::string& departmentName);
+    bool changeDepartment(const char* departmentId);
+    bool deleteDepartment(const char* id);
+    bool addPosition(const std::string& positionName);
+    bool changePosition(const char* positionId, const std::string& newPositionName);
+    bool deletePosition(const char* positionId);
+    bool addEmployee(const char* userId, const std::string& fullName, const char* experience, const char* departmentId, const char* positionId);
+    bool checkPositionExists(const char* positionId);
+    bool checkDepartmentExists(const char* departmentId);
 private:
-    //РїРѕР»Рµ СЃ Р±Р°Р·РѕР№ РґР°РЅРЅС‹С…, РІ СЂРµР°Р»РёР·Р°С†РёРё public РјРµС‚РѕРґРѕРІ РѕР±СЂР°С‰Р°С‚СЊСЃСЏ Рё СЂР°Р±РѕС‚Р°С‚СЊ СЃ СЌС‚РёРј РїРѕР»РµРј, РёР·РјРµРЅСЏСЏ Р‘Р”
+    //поле с базой данных, в реализации public методов обращаться и работать с этим полем, изменяя БД
     //som_type DataBase;
+    user User;
+    PGconn* connection;
 }; // class ChangeDataWidget
 
 #endif //CHANGEDATABD_H

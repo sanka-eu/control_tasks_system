@@ -1,18 +1,8 @@
-#pragma once
 #ifndef CHANGEDATABD_H
 #define CHANGEDATABD_H
 #include <string>
 #include <libpq-fe.h>
 #include <iostream>
-#include <sstream>
-class user
-{
-public:
-    std::string login;
-    std::string password;
-    std::string workerId;
-    std::string userType;
-};
 class ChangeDataBD
 {
 
@@ -40,7 +30,6 @@ public:
 private:
     //поле с базой данных, в реализации public методов обращатьс€ и работать с этим полем, измен€€ Ѕƒ
     //som_type DataBase;
-    user User;
     PGconn* connection;
 }; // class ChangeDataWidget
 

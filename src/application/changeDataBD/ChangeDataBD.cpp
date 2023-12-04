@@ -13,8 +13,7 @@ ChangeDataBD::~ChangeDataBD() {
 }
 
 bool ChangeDataBD::connectDB() {
-    // Замените параметры подключения на свои
-    const char* conninfo = "dbname=Kursach user=postgres password=0080 hostaddr=127.0.0.1 port=5432 client_encoding=WINDOWS-1251";
+    const char* conninfo = "dbname=kursdb user=bogdan32113 password=I0m1VQqzFjnJ host=ep-young-truth-04408351.eu-central-1.aws.neon.tech port=5432 client_encoding=WINDOWS-1251";
 
     // Установка соединения
     connection = PQconnectdb(conninfo);
@@ -635,13 +634,3 @@ bool ChangeDataBD::checkPositionExists(const char*  positionId) {
 
     return positionExists;
 }
-
-
-int main() {
-    // Пример использования класса
-    ChangeDataBD db;
-    // Вызов методов для работы с базой данных
-    db.addPosition("Стажер");
-    db.addEmployee("1000004","фывфв","4","4","2");
-    return 0;
-}   

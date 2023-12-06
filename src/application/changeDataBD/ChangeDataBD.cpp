@@ -1,636 +1,348 @@
 #include "ChangeDataBD.h"
+//Обязательно srand(time(NULL)); в main без него не будут случайно генериться все что генериться!!!!!!!!!!!!
+std::string generateRandomString(int length) {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
 
-ChangeDataBD::ChangeDataBD() : connection(nullptr) {
-    // Подключение к базе данных при создании объекта
-    if (!connectDB()) {
-        std::cerr << "Failed to connect to the database." << std::endl;
+    std::string randomString;
+    randomString.reserve(length);
+
+    for (int i = 0; i < length; ++i) {
+        randomString += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return randomString;
+}
+
+ChangeDataBD::ChangeDataBD() {
+    // Open or create the SQLite database file
+// Open or create the SQLite database file
+    int rc = sqlite3_open("your_database.db", &db);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        // Handle error...
+    }
+    else {
+        std::cout << "Opened database successfully!" << std::endl;
+
+        // Create Users table
+        const char* createUsersTableQuery = "CREATE TABLE IF NOT EXISTS Users ("
+            "Login TEXT PRIMARY KEY NOT NULL,"
+            "Password TEXT NOT NULL,"
+            "EmployeeId INTEGER);";
+
+        executeNonQuery(createUsersTableQuery);
+
+
+        // Create Positions table
+        const char* createPositionsTableQuery = "CREATE TABLE IF NOT EXISTS Positions ("
+            "PositionId INTEGER PRIMARY KEY NOT NULL,"
+            "Title VARCHAR(255) NOT NULL);";
+
+        executeNonQuery(createPositionsTableQuery);
+
+        // Create Departments table
+        const char* createDepartmentsTableQuery = "CREATE TABLE IF NOT EXISTS Departments ("
+            "DepartmentNumber INTEGER PRIMARY KEY NOT NULL,"
+            "Title VARCHAR(255) NOT NULL);";
+
+        executeNonQuery(createDepartmentsTableQuery);
+
+        // Create Tasks table
+        const char* createTasksTableQuery = "CREATE TABLE IF NOT EXISTS Tasks ("
+            "TaskNumber INTEGER PRIMARY KEY NOT NULL,"
+            "DepartmentForAssignment INTEGER NOT NULL,"
+            "AssignmentDate TEXT NOT NULL,"
+            "DueDate TEXT NOT NULL,"
+            "IsTaken INTEGER NOT NULL DEFAULT (0),"
+            "IsOverdue INTEGER NOT NULL  DEFAULT (0),"
+            "IssuedById INTEGER NOT NULL,"
+            "AssignmentTakenDate TEXT,"
+            "ExecutorId INTEGER,"
+            "IsCompleted INTEGER  DEFAULT (0),"
+            "ActualCompletionDate TEXT);";
+
+        executeNonQuery(createTasksTableQuery);
+
+        // Create Employees table
+        const char* createEmployeesTableQuery = "CREATE TABLE IF NOT EXISTS Employees ("
+            "EmployeeId INTEGER PRIMARY KEY NOT NULL,"
+            "FullName VARCHAR(255) NOT NULL,"
+            "Experience INTEGER NOT NULL,"
+            "Department INTEGER NOT NULL,"
+            "PositionId INTEGER NOT NULL);";
+
+        executeNonQuery(createEmployeesTableQuery);
+    
     }
 }
+
 
 ChangeDataBD::~ChangeDataBD() {
-    // Отключение от базы данных при уничтожении объекта
-    disconnectDB();
-}
-
-bool ChangeDataBD::connectDB() {
-    const char* conninfo = "dbname=kursdb user=bogdan32113 password=I0m1VQqzFjnJ host=ep-young-truth-04408351.eu-central-1.aws.neon.tech port=5432 client_encoding=WINDOWS-1251";
-
-    // Установка соединения
-    connection = PQconnectdb(conninfo);
-
-    // Проверка на успешное подключение
-    if (PQstatus(connection) != CONNECTION_OK) {
-        std::cerr << "Connection to database failed: " << PQerrorMessage(connection) << std::endl;
-        return false;
-    }
-    std::cout << "Connected"<<std::endl;
-    return true;
-}
-
-void ChangeDataBD::disconnectDB() {
-    // Закрытие соединения
-    if (connection != nullptr) {
-        PQfinish(connection);
-        connection = nullptr;
+    // Закрываем базу данных SQLite
+    if (db) {
+        sqlite3_close(db);
     }
 }
 
+bool ChangeDataBD::executeNonQuery(const char* query) {
+    // Execute a non-query SQL statement
+    int rc = sqlite3_exec(db, query, nullptr, nullptr, nullptr);
 
-bool ChangeDataBD::addUser(std::string login,std::string password,std::string userType) {
-
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to execute query: " << sqlite3_errmsg(db) << std::endl;
         return false;
     }
-
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
-
-    // Создаем параметризованный SQL-запрос для вставки нового пользователя в таблицу
-    const char* addUserQuery = "INSERT INTO users (Логин, Пароль, ТипПользователя) VALUES ($1, $2, $3) RETURNING idСотрудника";
-
-    // Значения параметров для добавления пользователя
-    const char* addUserValues[3] = { login.c_str(), password.c_str(), userType.c_str() };
-
-    // Длины параметров для добавления пользователя
-    int addUserLengths[3] = { static_cast<int>(login.length()), static_cast<int>(password.length()),
-                              static_cast<int>(userType.length()) };
-
-    // Формат параметров для добавления пользователя (1 для текстовых значений)
-    int addUserFormats[3] = { 1, 1, 1 };
-
-    // Выполняем запрос для добавления пользователя и получения idСотрудника
-    PGresult* addUserResult = PQexecParams(connection, addUserQuery, 3, nullptr, addUserValues, addUserLengths, addUserFormats, 0);
-
-    if (PQresultStatus(addUserResult) != PGRES_TUPLES_OK || PQntuples(addUserResult) == 0) {
-        std::cerr << "Failed to add user: " << PQresultErrorMessage(addUserResult) << std::endl;
-        PQclear(addUserResult);
-        return false;
-    }
-
-    // Получаем idСотрудника из результата запроса
-    std::string employeeId = std::to_string(atoi(PQgetvalue(addUserResult, 0, 0)));
-
-    // Освобождаем результат запроса
-    PQclear(addUserResult);
-
-    // Создаем параметризованный SQL-запрос для вставки нового сотрудника в таблицу
-    const char* addEmployeeQuery = "INSERT INTO Сотрудники (idСотрудника) VALUES ($1)";
-
-    // Значения параметров для добавления сотрудника
-    const char* addEmployeeValues[1] = { employeeId.c_str() };
-
-    // Длины параметров для добавления сотрудника
-    int addEmployeeLengths[1] = { 0 };
-
-    // Формат параметров для добавления сотрудника (0 для целочисленных значений)
-    int addEmployeeFormats[1] = { 0 };
-
-    // Выполняем запрос для добавления сотрудника
-    PGresult* addEmployeeResult = PQexecParams(connection, addEmployeeQuery, 1, nullptr, addEmployeeValues, addEmployeeLengths, addEmployeeFormats, 0);
-
-    if (PQresultStatus(addEmployeeResult) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to add employee: " << PQresultErrorMessage(addEmployeeResult) << std::endl;
-        PQclear(addEmployeeResult);
-        return false;
-    }
-
-    // Освобождаем результат запроса
-    PQclear(addEmployeeResult);
 
     return true;
 }
 
-bool ChangeDataBD::changeUser(std::string login,std::string newPassword,std::string newWorkerId,std::string newUserType)
-{
+//Добавить сотрудника
+void ChangeDataBD::addEmployee(const std::string& fullName, int experience, int department, int positionId) {
+    // Генерация случайного employeeId из 8 знаков
+    int employeeId = rand() % 90000000 + 10000000;
 
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    // Генерация случайного логина и пароля из 8 знаков
+    std::string login = generateRandomString(8);
+    std::string password = generateRandomString(8);
+
+    // Добавление записи в Users
+    const char* addUserQuery = "INSERT INTO Users (Login, Password, EmployeeId) VALUES (?, ?, ?)";
+    sqlite3_stmt* addUserStatement;
+    int rc = sqlite3_prepare_v2(db, addUserQuery, -1, &addUserStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare addUserStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_text(addUserStatement, 1, login.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(addUserStatement, 2, password.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(addUserStatement, 3, employeeId);
 
-    // Создаем параметризованный SQL-запрос для изменения данных пользователя
-    const char* query = "UPDATE users SET "
-        "Пароль = CASE WHEN $1 <> '' THEN $1 ELSE Пароль END, "
-        "idСотрудника = CASE WHEN $2 <> '' THEN $2 ELSE idСотрудника END, "
-        "ТипПользователя = CASE WHEN $3 <> '' THEN $3 ELSE ТипПользователя END "
-        "WHERE Логин = $4";
-
-    // Значения параметров
-    const char* values[4] = { newPassword.c_str(), newWorkerId.c_str(), newUserType.c_str(), login.c_str() };
-
-    // Длины параметров (можно использовать nullptr, если строки завершены нулевым символом)
-    int lengths[4] = { static_cast<int>(newPassword.length()), static_cast<int>(newWorkerId.length()),
-                       static_cast<int>(newUserType.length()), static_cast<int>(login.length()) };
-
-    // Формат параметров (1 для текстовых значений)
-    int formats[4] = { 1, 1, 1, 1 };
-
-    // Выполняем запрос с использованием параметров
-    PGresult* result = PQexecParams(connection, query, 4, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to change user: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
+    rc = sqlite3_step(addUserStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute addUserStatement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(addUserStatement);
+        return;
     }
 
-    PQclear(result);
-    return true;
+    sqlite3_finalize(addUserStatement);
+
+    // Добавление записи в Employees
+    const char* addEmployeeQuery = "INSERT INTO Employees (EmployeeId, FullName, Experience, Department, PositionId) VALUES (?, ?, ?, ?, ?)";
+    sqlite3_stmt* addEmployeeStatement;
+    rc = sqlite3_prepare_v2(db, addEmployeeQuery, -1, &addEmployeeStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare addEmployeeStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
+    }
+
+    sqlite3_bind_int(addEmployeeStatement, 1, employeeId);
+    sqlite3_bind_text(addEmployeeStatement, 2, fullName.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(addEmployeeStatement, 3, experience);
+    sqlite3_bind_int(addEmployeeStatement, 4, department);
+    sqlite3_bind_int(addEmployeeStatement, 5, positionId);
+
+    rc = sqlite3_step(addEmployeeStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute addEmployeeStatement: " << sqlite3_errmsg(db) << std::endl;
+    }
+
+    sqlite3_finalize(addEmployeeStatement);
 }
+//Добавить отдел
+void ChangeDataBD::addDepartment(int departmentNumber, const std::string& title) {
+    const char* addDepartmentQuery = "INSERT INTO Departments (DepartmentNumber, Title) VALUES (?, ?)";
+    sqlite3_stmt* addDepartmentStatement;
 
-bool ChangeDataBD::deleteUser(std::string login)
-{   
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    int rc = sqlite3_prepare_v2(db, addDepartmentQuery, -1, &addDepartmentStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare addDepartmentStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_int(addDepartmentStatement, 1, departmentNumber);
+    sqlite3_bind_text(addDepartmentStatement, 2, title.c_str(), -1, SQLITE_STATIC);
 
-    // Создаем параметризованный SQL-запрос для удаления пользователя
-    const char* query = "DELETE FROM users WHERE Логин = $1";
-
-    // Значение параметра
-    const char* values[1] = { login.c_str() };
-
-    // Длина параметра (можно использовать nullptr, если строка завершена нулевым символом)
-    int lengths[1] = { static_cast<int>(login.length()) };
-
-    // Формат параметра (1 для текстового значения)
-    int formats[1] = { 1 };
-
-    // Выполняем запрос с использованием параметра
-    PGresult* result = PQexecParams(connection, query, 1, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to delete user: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
+    rc = sqlite3_step(addDepartmentStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute addDepartmentStatement: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    PQclear(result);
-    return true;
+    sqlite3_finalize(addDepartmentStatement);
 }
+//Добавить должность
+void ChangeDataBD::addPosition(int positionId, const std::string& title) {
+    const char* addPositionQuery = "INSERT INTO Positions (PositionId, Title) VALUES (?, ?)";
+    sqlite3_stmt* addPositionStatement;
 
-
-bool ChangeDataBD::addAssigment(const char* department,const std::string& issueDate,const std::string& dueDate,bool taken,bool overdue,const std::string& issuedByLogin) {
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    int rc = sqlite3_prepare_v2(db, addPositionQuery, -1, &addPositionStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare addPositionStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_int(addPositionStatement, 1, positionId);
+    sqlite3_bind_text(addPositionStatement, 2, title.c_str(), -1, SQLITE_STATIC);
 
-    // Получаем idСотрудника (КемВыдано) из таблицы users по логину
-    const char* getUserIdQuery = "SELECT idСотрудника FROM users WHERE Логин = $1";
-
-    // Значение параметра для запроса на получение idСотрудника
-    const char* getUserIdValues[1] = { issuedByLogin.c_str() };
-
-    // Длина параметра (можно использовать nullptr, если строка завершена нулевым символом)
-    int getUserIdLengths[1] = { static_cast<int>(issuedByLogin.length()) };
-
-    // Формат параметра (1 для текстового значения)
-    int getUserIdFormats[1] = { 1 };
-
-    // Выполняем запрос для получения idСотрудника
-    PGresult* getUserIdResult = PQexecParams(connection, getUserIdQuery, 1, nullptr, getUserIdValues, getUserIdLengths, getUserIdFormats, 0);
-
-    if (PQresultStatus(getUserIdResult) != PGRES_TUPLES_OK || PQntuples(getUserIdResult) == 0) {
-        std::cerr << "Failed to get user ID for assignment: " << PQresultErrorMessage(getUserIdResult) << std::endl;
-        PQclear(getUserIdResult);
-        return false;
+    rc = sqlite3_step(addPositionStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute addPositionStatement: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    // Получаем idСотрудника из результата запроса
-    int issuedById = atoi(PQgetvalue(getUserIdResult, 0, 0));
-    std::string issuedByIdValue = std::to_string(issuedById);
-    std::cout << issuedByIdValue;
-    // Освобождаем результат запроса
-    PQclear(getUserIdResult);
-
-    // Создаем параметризованный SQL-запрос для вставки нового поручения
-    const char* addAssignmentQuery = "INSERT INTO Поручения (отделДляПоручения, ДатаВыдачи, ДатаОкончания, ВзятоВИсполнение, Просрочено, КемВыдано) "
-        "VALUES ($1, $2, $3, $4, $5, $6)";
-
-    // Значения параметров
-    const char* addAssignmentValues[6] = { department, issueDate.c_str(), dueDate.c_str(),
-                                           taken ? "true" : "false", overdue ? "true" : "false", issuedByIdValue.c_str()};
-
-    // Длины параметров (можно использовать nullptr, если строки завершены нулевым символом)
-    int addAssignmentLengths[6] = { 0, static_cast<int>(issueDate.length()), static_cast<int>(dueDate.length()), 5, 5, 0 };
-
-    // Формат параметров (0 для целочисленных значений, 1 для текстовых значений)
-    int addAssignmentFormats[6] = { 0, 1, 1, 0, 0, 0 };
-
-
-    // Выполняем запрос с использованием параметров
-    PGresult* addAssignmentResult = PQexecParams(connection, addAssignmentQuery, 6, nullptr, addAssignmentValues, addAssignmentLengths, addAssignmentFormats, 0);
-
-    if (PQresultStatus(addAssignmentResult) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to add assignment: " << PQresultErrorMessage(addAssignmentResult) << std::endl;
-        PQclear(addAssignmentResult);
-        return false;
-    }
-
-    PQclear(addAssignmentResult);
-    return true;
+    sqlite3_finalize(addPositionStatement);
 }
+//Добавить задачу
+void ChangeDataBD::addTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate,
+    const std::string& dueDate, int issuedById) {
+    const char* addTaskQuery = "INSERT INTO Tasks (TaskNumber, DepartmentForAssignment, AssignmentDate, DueDate, IssuedById) "
+        "VALUES (?, ?, ?, ?, ?)";
+    sqlite3_stmt* addTaskStatement;
 
-bool ChangeDataBD::changeAssigment(const std::string& assignmentId ,const std::string& newIssueDate,const std::string& newDueDate,bool newTaken,bool newOverdue) {
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    int rc = sqlite3_prepare_v2(db, addTaskQuery, -1, &addTaskStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare addTaskStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_int(addTaskStatement, 1, taskNumber);
+    sqlite3_bind_int(addTaskStatement, 2, departmentForAssignment);
+    sqlite3_bind_text(addTaskStatement, 3, assignmentDate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(addTaskStatement, 4, dueDate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(addTaskStatement, 5, issuedById);
 
-    // Создаем параметризованный SQL-запрос для обновления поручения
-    const char* changeAssignmentQuery = "UPDATE Поручения SET "
-        "ДатаВыдачи = CASE WHEN $2 <> '' THEN $2 ELSE ДатаВыдачи END, "
-        "ДатаОкончания = CASE WHEN $3 <> '' THEN $3 ELSE ДатаОкончания END, "
-        "ВзятоВИсполнение = CASE WHEN $4 <> '' THEN ($4::boolean) ELSE ВзятоВИсполнение END, "
-        "Просрочено = CASE WHEN $5 <> '' THEN ($5::boolean) ELSE Просрочено END "
-        "WHERE номерПоручения = $1";
 
-    // Значения параметров
-    const char* changeAssignmentValues[5] = { assignmentId.c_str(), newIssueDate.c_str(), newDueDate.c_str(),
-                                             newTaken ? "true" : "false", newOverdue ? "true" : "false" };
-
-    // Длины параметров (можно использовать nullptr, если строки завершены нулевым символом)
-    int changeAssignmentLengths[5] = { static_cast<int>(assignmentId.length()), static_cast<int>(newIssueDate.length()),
-                                       static_cast<int>(newDueDate.length()), 5, 5 };
-
-    // Формат параметров (0 для целочисленных значений, 1 для текстовых значений)
-    int changeAssignmentFormats[5] = { 0, 1, 1, 0, 0 };
-
-    // Выполняем запрос с использованием параметров
-    PGresult* changeAssignmentResult = PQexecParams(connection, changeAssignmentQuery, 5, nullptr, changeAssignmentValues, changeAssignmentLengths, changeAssignmentFormats, 0);
-
-    if (PQresultStatus(changeAssignmentResult) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to change assignment: " << PQresultErrorMessage(changeAssignmentResult) << std::endl;
-        PQclear(changeAssignmentResult);
-        return false;
+    rc = sqlite3_step(addTaskStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute addTaskStatement: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    PQclear(changeAssignmentResult);
-    return true;
+    sqlite3_finalize(addTaskStatement);
 }
+//Взять задачу
+void ChangeDataBD::takeTask(int taskNumber, int executorId, const std::string& assignmentTakenDate) {
+    const char* takeTaskQuery = "UPDATE Tasks SET ExecutorId = ?, IsTaken = 1, AssignmentTakenDate = ? WHERE TaskNumber = ?";
+    sqlite3_stmt* takeTaskStatement;
 
-bool ChangeDataBD::deleteAssigment(const std::string& assignmentId)
-{
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    int rc = sqlite3_prepare_v2(db, takeTaskQuery, -1, &takeTaskStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare takeTaskStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_int(takeTaskStatement, 1, executorId);
+    sqlite3_bind_text(takeTaskStatement, 2, assignmentTakenDate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(takeTaskStatement, 3, taskNumber);
 
-    // Создаем параметризованный SQL-запрос для удаления пользователя
-    const char* query = "DELETE FROM Поручения WHERE номерПоручения = $1";
-
-    // Значение параметра
-    const char* values[1] = { assignmentId.c_str() };
-
-    // Длина параметра (можно использовать nullptr, если строка завершена нулевым символом)
-    int lengths[1] = { static_cast<int>(assignmentId.length()) };
-
-    // Формат параметра (1 для текстового значения)
-    int formats[1] = { 0 };
-
-    // Выполняем запрос с использованием параметра
-    PGresult* result = PQexecParams(connection, query, 1, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to delete user: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
+    rc = sqlite3_step(takeTaskStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute takeTaskStatement: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    PQclear(result);
-    return true;
+    sqlite3_finalize(takeTaskStatement);
 }
+//Изменить название отдела по id
+void ChangeDataBD::changeDepartmentTitle(int departmentNumber, const std::string& newTitle) {
+    const char* changeDepartmentQuery = "UPDATE Departments SET Title = ? WHERE DepartmentNumber = ?";
+    sqlite3_stmt* changeDepartmentStatement;
 
-
-bool ChangeDataBD::addDepartment(const std::string& departmentName )
-{
-    
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    int rc = sqlite3_prepare_v2(db, changeDepartmentQuery, -1, &changeDepartmentStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare changeDepartmentStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_text(changeDepartmentStatement, 1, newTitle.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(changeDepartmentStatement, 2, departmentNumber);
 
-    // Создаем параметризованный SQL-запрос для добавления отдела
-    const char* addDepartmentQuery = "INSERT INTO Отделы (НазваниеОтдела) VALUES ($1)";
-
-    // Значение параметра
-    const char* values[1] = { departmentName.c_str() };
-
-    // Длина параметра (можно использовать nullptr, если строка завершена нулевым символом)
-    int lengths[1] = { static_cast<int>(departmentName.length()) };
-
-    // Формат параметра (1 для текстового значения)
-    int formats[1] = { 1 };
-
-    // Выполняем запрос с использованием параметра
-    PGresult* result = PQexecParams(connection, addDepartmentQuery, 1, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to add department: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
+    rc = sqlite3_step(changeDepartmentStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute changeDepartmentStatement: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    PQclear(result);
-    return true;
+    sqlite3_finalize(changeDepartmentStatement);
 }
+//Изменить название должности по id
+void ChangeDataBD::changePositionTitle(int positionId, const std::string& newTitle) {
+    const char* changePositionQuery = "UPDATE Positions SET Title = ? WHERE PositionId = ?";
+    sqlite3_stmt* changePositionStatement;
 
-bool ChangeDataBD::changeDepartment(const char* departmentId)
-{
-    const std::string& newDepartmentName = "Аналитика";
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    int rc = sqlite3_prepare_v2(db, changePositionQuery, -1, &changePositionStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare changePositionStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_text(changePositionStatement, 1, newTitle.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(changePositionStatement, 2, positionId);
 
-    // Создаем параметризованный SQL-запрос для изменения отдела
-    const char* changeDepartmentQuery = "UPDATE Отделы SET НазваниеОтдела = $2 WHERE номерОтдела = $1";
-
-    // Значения параметров
-    const char* values[2] = { departmentId, newDepartmentName.c_str() };
-
-    // Длины параметров (можно использовать nullptr, если строки завершены нулевым символом)
-    int lengths[2] = { 0, static_cast<int>(newDepartmentName.length()) };
-
-    // Формат параметров (0 для целочисленных значений, 1 для текстовых значений)
-    int formats[2] = { 0, 1 };
-
-    // Выполняем запрос с использованием параметров
-    PGresult* result = PQexecParams(connection, changeDepartmentQuery, 2, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to change department: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
+    rc = sqlite3_step(changePositionStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute changePositionStatement: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    PQclear(result);
-    return true;
+    sqlite3_finalize(changePositionStatement);
 }
+//Изменить содержание задачи по id
+void ChangeDataBD::updateTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate,
+    const std::string& dueDate, int issuedById, const std::string& assignmentTakenDate,
+    int executorId, int isCompleted, const std::string& actualCompletionDate) {
+    const char* updateTaskQuery = "UPDATE Tasks SET DepartmentForAssignment = ?, "
+        "AssignmentDate = ?, DueDate = ?, IssuedById = ?, AssignmentTakenDate = ?, "
+        "ExecutorId = ?, IsCompleted = ?, ActualCompletionDate = ? WHERE TaskNumber = ?";
+    sqlite3_stmt* updateTaskStatement;
 
-bool ChangeDataBD::deleteDepartment(const char* departmentId)
-{
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    int rc = sqlite3_prepare_v2(db, updateTaskQuery, -1, &updateTaskStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare updateTaskStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_int(updateTaskStatement, 1, departmentForAssignment);
+    sqlite3_bind_text(updateTaskStatement, 2, assignmentDate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(updateTaskStatement, 3, dueDate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(updateTaskStatement, 4, issuedById);
+    sqlite3_bind_text(updateTaskStatement, 5, assignmentTakenDate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(updateTaskStatement, 6, executorId);
+    sqlite3_bind_int(updateTaskStatement, 7, isCompleted);
+    sqlite3_bind_text(updateTaskStatement, 8, actualCompletionDate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(updateTaskStatement, 9, taskNumber);
 
-    // Создаем параметризованный SQL-запрос для удаления отдела
-    const char* deleteDepartmentQuery = "DELETE FROM Отделы WHERE номерОтдела = $1";
-
-    // Значение параметра
-    const char* values[1] = { departmentId };
-
-    // Длина параметра (можно использовать nullptr, если строка завершена нулевым символом)
-    int lengths[1] = { 0 };
-
-    // Формат параметра (0 для целочисленных значений)
-    int formats[1] = { 0 };
-
-    // Выполняем запрос с использованием параметра
-    PGresult* result = PQexecParams(connection, deleteDepartmentQuery, 1, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to delete department: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
+    rc = sqlite3_step(updateTaskStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute updateTaskStatement: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    PQclear(result);
-    return true;
+    sqlite3_finalize(updateTaskStatement);
 }
+//Изменить параметры сотрудника по id
+void ChangeDataBD::changeEmployee(int employeeId, const std::string& fullName, int experience,
+    int department, int positionId) {
+    const char* changeEmployeeQuery = "UPDATE Employees SET FullName = ?, Experience = ?, "
+        "Department = ?, PositionId = ? WHERE EmployeeId = ?";
+    sqlite3_stmt* changeEmployeeStatement;
 
-
-bool ChangeDataBD::addPosition(const std::string& positionName)
-{
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
+    int rc = sqlite3_prepare_v2(db, changeEmployeeQuery, -1, &changeEmployeeStatement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare changeEmployeeStatement: " << sqlite3_errmsg(db) << std::endl;
+        return;
     }
 
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
+    sqlite3_bind_text(changeEmployeeStatement, 1, fullName.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(changeEmployeeStatement, 2, experience);
+    sqlite3_bind_int(changeEmployeeStatement, 3, department);
+    sqlite3_bind_int(changeEmployeeStatement, 4, positionId);
+    sqlite3_bind_int(changeEmployeeStatement, 5, employeeId);
 
-    // Создаем параметризованный SQL-запрос для добавления должности
-    const char* addPositionQuery = "INSERT INTO Должность (НазваниеДолжности) VALUES ($1)";
-
-    // Значение параметра
-    const char* values[1] = { positionName.c_str() };
-
-    // Длина параметра (можно использовать nullptr, если строка завершена нулевым символом)
-    int lengths[1] = { static_cast<int>(positionName.length()) };
-
-    // Формат параметра (1 для текстового значения)
-    int formats[1] = { 1 };
-
-    // Выполняем запрос с использованием параметра
-    PGresult* result = PQexecParams(connection, addPositionQuery, 1, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to add position: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
+    rc = sqlite3_step(changeEmployeeStatement);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Failed to execute changeEmployeeStatement: " << sqlite3_errmsg(db) << std::endl;
     }
 
-    PQclear(result);
-    return true;
+    sqlite3_finalize(changeEmployeeStatement);
 }
+//Обязательно srand(time(NULL)); в main без него не будут случайно генериться все что генериться!!!!!!!!!!!!
 
-bool ChangeDataBD::changePosition(const char* positionId, const std::string& newPositionName)
-{
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
-    }
-
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
-
-    // Создаем параметризованный SQL-запрос для изменения должности
-    const char* changePositionQuery = "UPDATE Должность SET НазваниеДолжности = $2 WHERE idДолжности = $1";
-
-    // Значения параметров
-    const char* values[2] = {positionId, newPositionName.c_str() };
-
-    // Длины параметров (можно использовать nullptr, если строки завершены нулевым символом)
-    int lengths[2] = { 0, static_cast<int>(newPositionName.length()) };
-
-    // Формат параметров (0 для целочисленных значений, 1 для текстовых значений)
-    int formats[2] = { 0, 1 };
-
-    // Выполняем запрос с использованием параметров
-    PGresult* result = PQexecParams(connection, changePositionQuery, 2, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to change position: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
-    }
-
-    PQclear(result);
-    return true;
-}
-
-bool ChangeDataBD::deletePosition(const char* positionId)
-{
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
-    }
-
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
-
-    // Создаем параметризованный SQL-запрос для удаления должности
-    const char* deletePositionQuery = "DELETE FROM Должность WHERE idДолжности = $1";
-
-    // Значение параметра
-    const char* values[1] = { positionId };
-
-    // Длина параметра (можно использовать nullptr, если строка завершена нулевым символом)
-    int lengths[1] = { 0 };
-
-    // Формат параметра (0 для целочисленных значений)
-    int formats[1] = { 0 };
-
-    // Выполняем запрос с использованием параметра
-    PGresult* result = PQexecParams(connection, deletePositionQuery, 1, nullptr, values, lengths, formats, 0);
-
-    if (PQresultStatus(result) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to delete position: " << PQresultErrorMessage(result) << std::endl;
-        PQclear(result);
-        return false;
-    }
-
-    PQclear(result);
-    return true;
-}
-
-
-bool ChangeDataBD::addEmployee(const char* userId, const std::string& fullName, const char*  experience, const char* departmentId, const char* positionId) {
-    if (connection == nullptr) {
-        std::cerr << "Not connected to the database." << std::endl;
-        return false;
-    }
-
-    // Проверка существования отдела
-    if (!checkDepartmentExists(departmentId)) {
-        std::cerr << "Department with id " << departmentId << " does not exist." << std::endl;
-        return false;
-    }
-
-    // Проверка существования должности
-    if (!checkPositionExists(positionId)) {
-        std::cerr << "Position with id " << positionId << " does not exist." << std::endl;
-        return false;
-    }
-
-
-    // Указываем кодировку Windows-1251
-    PQexec(connection, "SET client_encoding TO 'WIN1251'");
-
-    // Создаем параметризованный SQL-запрос для добавления сотрудника
-    const char* addEmployeeQuery = "UPDATE Сотрудники SET ФИО = $1, Стаж = $2, Отдел = $3, idДолжности = $4 WHERE idСотрудника = $5";
-
-    // Значения параметров для добавления сотрудника
-    const char* addEmployeeValues[5] = { fullName.c_str(),
-                                         experience,
-                                         departmentId,
-                                         positionId,
-                                         userId };
-
-    // Длины параметров для добавления сотрудника
-    int addEmployeeLengths[5] = { static_cast<int>(fullName.length()), 0, 0, 0, 0 };
-
-    // Формат параметров для добавления сотрудника (1 для текстовых значений, 0 для целочисленных значений)
-    int addEmployeeFormats[5] = { 1, 0, 0, 0, 0 };
-
-    // Выполняем запрос для добавления сотрудника
-    PGresult* addEmployeeResult = PQexecParams(connection, addEmployeeQuery, 5, nullptr, addEmployeeValues, addEmployeeLengths, addEmployeeFormats, 0);
-
-    if (PQresultStatus(addEmployeeResult) != PGRES_COMMAND_OK) {
-        std::cerr << "Failed to add employee: " << PQresultErrorMessage(addEmployeeResult) << std::endl;
-        PQclear(addEmployeeResult);
-        return false;
-    }
-
-    // Освобождаем результат запроса
-    PQclear(addEmployeeResult);
-
-    return true;
-}
-
-bool ChangeDataBD::checkDepartmentExists(const char* departmentId) {
-    // Проверка существования отдела в таблице Отделы
-    const char* checkDepartmentQuery = "SELECT 1 FROM Отделы WHERE номерОтдела = $1";
-
-    // Значение параметра для проверки существования отдела
-    const char* checkDepartmentValues[1] = {departmentId};
-
-    // Длина параметра для проверки существования отдела
-    int checkDepartmentLengths[1] = { 0 };
-
-    // Формат параметра для проверки существования отдела (0 для целочисленных значений)
-    int checkDepartmentFormats[1] = { 0 };
-
-    // Выполняем запрос для проверки существования отдела
-    PGresult* checkDepartmentResult = PQexecParams(connection, checkDepartmentQuery, 1, nullptr, checkDepartmentValues, checkDepartmentLengths, checkDepartmentFormats, 0);
-
-    bool departmentExists = (PQresultStatus(checkDepartmentResult) == PGRES_TUPLES_OK && PQntuples(checkDepartmentResult) > 0);
-
-    // Освобождаем результат запроса
-    PQclear(checkDepartmentResult);
-
-    return departmentExists;
-}
-
-bool ChangeDataBD::checkPositionExists(const char*  positionId) {
-    // Проверка существования должности в таблице Должность
-    const char* checkPositionQuery = "SELECT 1 FROM Должность WHERE idДолжности = $1";
-
-    // Значение параметра для проверки существования должности
-    const char* checkPositionValues[1] = { positionId };
-
-    // Длина параметра для проверки существования должности
-    int checkPositionLengths[1] = { 0 };
-
-    // Формат параметра для проверки существования должности (0 для целочисленных значений)
-    int checkPositionFormats[1] = { 0 };
-
-    // Выполняем запрос для проверки существования должности
-    PGresult* checkPositionResult = PQexecParams(connection, checkPositionQuery, 1, nullptr, checkPositionValues, checkPositionLengths, checkPositionFormats, 0);
-
-    bool positionExists = (PQresultStatus(checkPositionResult) == PGRES_TUPLES_OK && PQntuples(checkPositionResult) > 0);
-
-    // Освобождаем результат запроса
-    PQclear(checkPositionResult);
-
-    return positionExists;
-}

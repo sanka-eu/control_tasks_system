@@ -223,8 +223,8 @@ void ChangeDataBD::addTask(int taskNumber, int departmentForAssignment, const st
 
     sqlite3_finalize(addTaskStatement);
 }
-//Взять задачу
-void ChangeDataBD::takeTask(int taskNumber, int executorId, const std::string& assignmentTakenDate) {
+//Назначить задачу
+void ChangeDataBD::giveTask(int taskNumber, int executorId, const std::string& assignmentTakenDate) {
     const char* takeTaskQuery = "UPDATE Tasks SET ExecutorId = ?, IsTaken = 1, AssignmentTakenDate = ? WHERE TaskNumber = ?";
     sqlite3_stmt* takeTaskStatement;
 

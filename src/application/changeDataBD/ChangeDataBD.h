@@ -1,24 +1,40 @@
 #ifndef CHANGEDATABD_H
 #define CHANGEDATABD_H
 
+#include <src/application/changeDataBD/sqlite/sqlite3.h>
+
+#include <string>
+#include <iostream>
+#include <vector>
 
 class ChangeDataBD
 {
 
 public:
     ChangeDataBD();
-
-    //методы меняют поле БД объявленное в private секции, возвращают true если изменение прошло удачно, если нет - false
-    bool addUser();
-    bool changeUser();
-    bool deleteUser();
-    bool addAssigment();
-    bool changeAssigment();
-    bool deleteAssigment();
-
+    ~ChangeDataBD();
+    void addEmployee(const std::string& fullName, int experience, int department, int positionId);
+    void addDepartment(int departmentNumber, const std::string& title);
+    void addPosition(int positionId, const std::string& title);
+    void addTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate,
+        const std::string& dueDate, int issuedById);
+    void takeTask(int taskNumber, int executorId, const std::string& assignmentTakenDate);
+    void changeDepartmentTitle(int departmentNumber, const std::string& newTitle);
+    void changePositionTitle(int positionId, const std::string& newTitle);
+    void updateTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate,
+        const std::string& dueDate, int issuedById, const std::string& assignmentTakenDate,
+        int executorId, int isCompleted, const std::string& actualCompletionDate);
+    void changeEmployee(int employeeId, const std::string& fullName, int experience,
+        int department, int positionId);
+    std::vector<std::vector<std::string>> getDepartments();
+    std::vector<std::vector<std::string>> getPositions();
+    std::vector<std::vector<std::string>> getEmployees();
+    std::vector<std::vector<std::string>> getUsers();
+    std::vector<std::vector<std::string>> getTasks();
+    int getEmployeePositionId(const std::string& login, const std::string& password);
 private:
-    //поле с базой данных, в реализации public методов обращаться и работать с этим полем, изменяя БД
-    //som_type DataBase;
+    sqlite3* db;
+    bool executeNonQuery(const char* query);
 }; // class ChangeDataWidget
 
 #endif //CHANGEDATABD_H

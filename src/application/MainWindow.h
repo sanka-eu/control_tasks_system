@@ -1,10 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QDialog>
 #include "ui_MainWindow.h"
 #include "changeDataWidget/ui_ChangeDataWidget.h"
+
+#include <QMainWindow>
+#include <QDialog>
 
 class MainWindow: public QMainWindow
 {

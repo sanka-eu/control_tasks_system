@@ -1,9 +1,9 @@
 #ifndef CHANGEDATABD_H
 #define CHANGEDATABD_H
 #include <string>
-#include <libpq-fe.h>
 #include <iostream>
 #include "sqlite/sqlite3.h"
+#include <vector>
 class ChangeDataBD
 {
 
@@ -23,6 +23,12 @@ public:
         int executorId, int isCompleted, const std::string& actualCompletionDate);
     void changeEmployee(int employeeId, const std::string& fullName, int experience,
         int department, int positionId);
+    std::vector<std::vector<std::string>> getDepartments();
+    std::vector<std::vector<std::string>> getPositions();
+    std::vector<std::vector<std::string>> getEmployees();
+    std::vector<std::vector<std::string>> getUsers();
+    std::vector<std::vector<std::string>> getTasks();
+    int getEmployeePositionId(const std::string& login, const std::string& password);
 private:
     sqlite3* db;
     bool executeNonQuery(const char* query);

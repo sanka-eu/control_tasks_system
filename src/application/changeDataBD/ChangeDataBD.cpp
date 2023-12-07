@@ -345,5 +345,127 @@ void ChangeDataBD::changeEmployee(int employeeId, const std::string& fullName, i
 
     sqlite3_finalize(changeEmployeeStatement);
 }
+//для заполнения вектора данными из таблицы
+static int callback(void* data, int argc, char** argv, char** azColName) {
+    std::vector<std::string> row;
+
+    for (int i = 0; i < argc; i++) {
+        row.push_back(argv[i] ? argv[i] : "NULL");
+    }
+
+    std::vector<std::vector<std::string>>* result = static_cast<std::vector<std::vector<std::string>>*>(data);
+    result->push_back(row);
+
+    return 0;
+}
+
+//Получить таблицу отделов
+std::vector<std::vector<std::string>> ChangeDataBD::getDepartments() {
+    std::vector<std::vector<std::string>> result;
+
+    const char* query = "SELECT * FROM Departments;";
+    char* errMsg = nullptr;
+
+    int rc = sqlite3_exec(db, query, callback, &result, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+    }
+
+    return result;
+}
+//Получить таблицу должностей
+std::vector<std::vector<std::string>> ChangeDataBD::getPositions() {
+    std::vector<std::vector<std::string>> result;
+
+    const char* query = "SELECT * FROM Positions;";
+    char* errMsg = nullptr;
+
+    int rc = sqlite3_exec(db, query, callback, &result, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+    }
+
+    return result;
+}
+//Получить таблицу сотрудников
+std::vector<std::vector<std::string>> ChangeDataBD::getEmployees() {
+    std::vector<std::vector<std::string>> result;
+
+    const char* query = "SELECT * FROM Employees;";
+    char* errMsg = nullptr;
+
+    int rc = sqlite3_exec(db, query, callback, &result, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+    }
+
+    return result;
+}
+//Получить таблицу пользователей
+std::vector<std::vector<std::string>> ChangeDataBD::getUsers() {
+    std::vector<std::vector<std::string>> result;
+
+    const char* query = "SELECT * FROM Users;";
+    char* errMsg = nullptr;
+
+    int rc = sqlite3_exec(db, query, callback, &result, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+    }
+
+    return result;
+}
+//Получить таблицу задач
+std::vector<std::vector<std::string>> ChangeDataBD::getTasks() {
+    std::vector<std::vector<std::string>> result;
+
+    const char* query = "SELECT * FROM Tasks;";
+    char* errMsg = nullptr;
+
+    int rc = sqlite3_exec(db, query, callback, &result, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+    }
+
+    return result;
+}
+//Проверить логин пароль и вернуть должность если есть, если нет вернуть 0(вообще там своя ошибка возвращается до того как вернется 0)
+int ChangeDataBD::getEmployeePositionId(const std::string& login, const std::string& password) {
+    const char* query = "SELECT e.PositionId FROM Users u JOIN Employees e ON u.EmployeeId = e.EmployeeId "
+        "WHERE u.Login = ? AND u.Password = ?;";
+    sqlite3_stmt* statement;
+
+    int rc = sqlite3_prepare_v2(db, query, -1, &statement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return 0;
+    }
+
+    sqlite3_bind_text(statement, 1, login.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(statement, 2, password.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(statement);
+
+    if (rc == SQLITE_ROW) {
+        int positionId = sqlite3_column_int(statement, 0);
+        sqlite3_finalize(statement);
+        return positionId;
+    }
+    else {
+        std::cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(statement);
+        return 0;
+    }
+}
 //Обязательно srand(time(NULL)); в main без него не будут случайно генериться все что генериться!!!!!!!!!!!!
 

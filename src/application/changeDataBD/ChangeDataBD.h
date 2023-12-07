@@ -1,9 +1,12 @@
 #ifndef CHANGEDATABD_H
 #define CHANGEDATABD_H
+
+#include <src/application/changeDataBD/sqlite/sqlite3.h>
+
 #include <string>
 #include <iostream>
-#include "sqlite/sqlite3.h"
 #include <vector>
+
 class ChangeDataBD
 {
 

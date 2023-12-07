@@ -1,8 +1,11 @@
 #ifndef CHANGEDATAWIDGET_H
 #define CHANGEDATAWIDGET_H
 
-#include <QWidget>
 #include "ui_ChangeDataWidget.h"
+
+#include <src/application/changeDataBD/ChangeDataBD.h>
+
+#include <QWidget>
 
 class ChangeDataWidget: public QWidget
 {

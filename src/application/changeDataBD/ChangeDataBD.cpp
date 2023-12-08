@@ -467,5 +467,63 @@ int ChangeDataBD::getEmployeePositionId(const std::string& login, const std::str
         return 0;
     }
 }
+//Получить таблицу задач
+std::vector<std::vector<std::string>> ChangeDataBD::getTasks() {
+    std::vector<std::vector<std::string>> result;
+
+    const char* query = "SELECT "
+        "TaskNumber, "
+        "Departments.Title AS DepartmentForAssignment, "
+        "AssignmentDate, "
+        "DueDate, "
+        "CASE WHEN IsTaken = 0 THEN 'No' ELSE 'Yes' END AS IsTaken, "
+        "CASE WHEN IsOverdue = 0 THEN 'No' ELSE 'Yes' END AS IsOverdue, "
+        "Employees_Issued.FullName AS IssuedByFullName, "
+        "AssignmentTakenDate, "
+        "Employees_Executor.FullName AS ExecutorFullName, "
+        "CASE WHEN IsCompleted = 0 THEN 'No' ELSE 'Yes' END AS IsCompleted, "
+        "ActualCompletionDate "
+        "FROM Tasks "
+        "JOIN Departments ON Tasks.DepartmentForAssignment = Departments.DepartmentNumber "
+        "JOIN Employees AS Employees_Issued ON Tasks.IssuedById = Employees_Issued.EmployeeId "
+        "LEFT JOIN Employees AS Employees_Executor ON Tasks.ExecutorId = Employees_Executor.EmployeeId;";
+
+    char* errMsg = nullptr;
+
+    int rc = sqlite3_exec(db, query, callback, &result, &errMsg);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "SQL error: " << errMsg << std::endl;
+        sqlite3_free(errMsg);
+    }
+
+    return result;
+}
+//Взята ли таска
+bool ChangeDataBD::isTaskTaken(int taskNumber) {
+    const char* query = "SELECT IsTaken FROM Tasks WHERE TaskNumber = ?;";
+    sqlite3_stmt* statement;
+
+    int rc = sqlite3_prepare_v2(db, query, -1, &statement, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        return false; // Ошибка при подготовке запроса
+    }
+
+    sqlite3_bind_int(statement, 1, taskNumber);
+
+    rc = sqlite3_step(statement);
+    if (rc != SQLITE_ROW) {
+        std::cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(statement);
+        return false; // Ошибка при выполнении запроса
+    }
+
+    int isTaken = sqlite3_column_int(statement, 0);
+
+    sqlite3_finalize(statement);
+
+    return (isTaken == 1);
+}
 //Обязательно srand(time(NULL)); в main без него не будут случайно генериться все что генериться!!!!!!!!!!!!
 

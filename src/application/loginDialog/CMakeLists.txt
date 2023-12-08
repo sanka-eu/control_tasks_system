@@ -1,6 +1,6 @@
 add_library(login
-    LoginWidget.cpp
-    LoginWidget.ui
+    LoginDialog.cpp
+    LoginDialog.ui
 )
 
 target_link_libraries(login changeBD Qt5::Widgets)

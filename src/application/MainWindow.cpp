@@ -7,17 +7,25 @@ MainWindow::MainWindow(QWidget *parent):
 {
     m_ui->setupUi(this);
 
-    connect(m_ui->changeData, &QPushButton::clicked, this, changeDataSlot);
+    connect(m_ui->changeUser, SIGNAL(clicked()), this, SLOT(changeUserSlot()));
+    connect(m_ui->changeData, SIGNAL(clicked()), this, SLOT(changeDataSlot()));
+}
+
+void MainWindow::changeUserSlot()
+{
+    qDebug("change user slot");
+    
+    std::shared_ptr<LoginDialog> loginDialog = std::make_shared<LoginDialog>();
+    
+    loginDialog->exec();
 }
 
 void MainWindow::changeDataSlot()
 {
     qDebug("change data slot");
     
-    QDialog *changeDataWidget = new QDialog(this);
+    std::shared_ptr<ChangeDataDialog> changeDataDialog = std::make_shared<ChangeDataDialog>();
     
-    std::shared_ptr<Ui::ChangeDataWidget> changeDataUi = std::make_shared<Ui::ChangeDataWidget>();
-    changeDataUi->setupUi(changeDataWidget);
-    
-    changeDataWidget->show();
+    changeDataDialog->exec();
 }
+

@@ -11,7 +11,8 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
 endif()
 
 add_subdirectory(changeDataBD)
-add_subdirectory(changeDataWidget)
+add_subdirectory(changeDataDialog)
+add_subdirectory(loginDialog)
 
 add_executable(app
     main.cpp
@@ -19,4 +20,4 @@ add_executable(app
     MainWindow.ui
 )
 
-target_link_libraries(app changeData Qt5::Widgets)
+target_link_libraries(app changeData login Qt5::Widgets)

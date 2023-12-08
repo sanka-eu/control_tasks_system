@@ -2,10 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QDialog>
-#include "changeDataWidget/ui_ChangeDataWidget.h"
 
-#include <src/application/changeDataWidget/ChangeDataWidget.h>
+#include <src/application/loginDialog/LoginDialog.h>
+#include <src/application/changeDataDialog/ChangeDataDialog.h>
 
 namespace Ui {
   class MainWindow;
@@ -19,6 +18,7 @@ public:
     MainWindow(QWidget *parent = 0);
 
 private slots:
+    void changeUserSlot();
     void changeDataSlot();
 
 private:

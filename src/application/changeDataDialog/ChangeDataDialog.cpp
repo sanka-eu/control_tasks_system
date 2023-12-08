@@ -1,9 +1,9 @@
-#include "ChangeDataWidget.h"
-#include "ui_ChangeDataWidget.h"
+#include "ChangeDataDialog.h"
+#include "ui_ChangeDataDialog.h"
 
-ChangeDataWidget::ChangeDataWidget(QWidget *parent):
-    QWidget(parent),
-    m_ui(std::make_shared<Ui::ChangeDataWidget>())
+ChangeDataDialog::ChangeDataDialog(QWidget *parent):
+    QDialog(parent),
+    m_ui(std::make_shared<Ui::ChangeDataDialog>())
 {
     m_ui->setupUi(this);
 
@@ -14,32 +14,27 @@ ChangeDataWidget::ChangeDataWidget(QWidget *parent):
     connect(m_ui->giveTaskButton, SIGNAL(clicked()), this, SLOT(GiveTaskSlot()));
 }
 
-std::shared_ptr<Ui::ChangeDataWidget> ChangeDataWidget::getUi()
-{
-    return m_ui;
-}
-
-void ChangeDataWidget::AddEmployeeSlot()
+void ChangeDataDialog::AddEmployeeSlot()
 {
     qDebug("addEmployeeSlot");
 }
 
-void ChangeDataWidget::RemoveEmployeeSlot()
+void ChangeDataDialog::RemoveEmployeeSlot()
 {
     qDebug("removeEmployeeSlot");
 }
 
-void ChangeDataWidget::ChangeUserByIdSlot()
+void ChangeDataDialog::ChangeUserByIdSlot()
 {
     qDebug("changeUserByIdSlot");
 }
 
-void ChangeDataWidget::AddTaskSlot()
+void ChangeDataDialog::AddTaskSlot()
 {
     qDebug("addTaskSlot");
 }
 
-void ChangeDataWidget::GiveTaskSlot()
+void ChangeDataDialog::GiveTaskSlot()
 {
     qDebug("giveTaskSlot");
 }

@@ -59,6 +59,8 @@ void MainWindow::ShowAllTasksSlot()
         {
             m_ui->tableWidget->setItem(rowNumber, i, new QTableWidgetItem(QString::fromStdString(row.at(i))));
         }
+        
+        rowNumber++;
     }
     
 }

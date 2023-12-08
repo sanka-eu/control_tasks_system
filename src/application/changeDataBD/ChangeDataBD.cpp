@@ -1,26 +1,10 @@
 #include "ChangeDataBD.h"
 //Обязательно srand(time(NULL)); в main без него не будут случайно генериться все что генериться!!!!!!!!!!!!
 //////////////////////////////////////////////////
-std::string generateRandomString(int length) {
-    static const char alphanum[] =
-        "0123456789"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz";
-
-    std::string randomString;
-    randomString.reserve(length);
-
-    for (int i = 0; i < length; ++i) {
-        randomString += alphanum[rand() % (sizeof(alphanum) - 1)];
-    }
-
-    return randomString;
-}
-
 ChangeDataBD::ChangeDataBD() {
     // Open or create the SQLite database file
 // Open or create the SQLite database file
-    int rc = sqlite3_open("./src/application//changeDataBD/your_database.db", &db);
+    int rc = sqlite3_open("./src/application/changeDataBD/your_database.db", &db);
 
     if (rc != SQLITE_OK) {
         std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
@@ -83,12 +67,11 @@ ChangeDataBD::ChangeDataBD() {
 
 
 ChangeDataBD::~ChangeDataBD() {
-    // Закрываем базу данных SQLite
+    // ��������� ���� ������ SQLite
     if (db) {
         sqlite3_close(db);
     }
 }
-
 bool ChangeDataBD::executeNonQuery(const char* query) {
     // Execute a non-query SQL statement
     int rc = sqlite3_exec(db, query, nullptr, nullptr, nullptr);
@@ -101,16 +84,31 @@ bool ChangeDataBD::executeNonQuery(const char* query) {
     return true;
 }
 
-//Добавить сотрудника
+std::string generateRandomString(int length) {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+
+    std::string randomString;
+    randomString.reserve(length);
+
+    for (int i = 0; i < length; ++i) {
+        randomString += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    return randomString;
+}
+
 void ChangeDataBD::addEmployee(const std::string& fullName, int experience, int department, int positionId) {
-    // Генерация случайного employeeId из 8 знаков
+    // ��������� ���������� employeeId �� 8 ������
     int employeeId = rand() % 90000000 + 10000000;
 
-    // Генерация случайного логина и пароля из 8 знаков
+    // ��������� ���������� ������ � ������ �� 8 ������
     std::string login = generateRandomString(8);
     std::string password = generateRandomString(8);
 
-    // Добавление записи в Users
+    // ���������� ������ � Users
     const char* addUserQuery = "INSERT INTO Users (Login, Password, EmployeeId) VALUES (?, ?, ?)";
     sqlite3_stmt* addUserStatement;
     int rc = sqlite3_prepare_v2(db, addUserQuery, -1, &addUserStatement, nullptr);
@@ -132,7 +130,7 @@ void ChangeDataBD::addEmployee(const std::string& fullName, int experience, int 
 
     sqlite3_finalize(addUserStatement);
 
-    // Добавление записи в Employees
+    // ���������� ������ � Employees
     const char* addEmployeeQuery = "INSERT INTO Employees (EmployeeId, FullName, Experience, Department, PositionId) VALUES (?, ?, ?, ?, ?)";
     sqlite3_stmt* addEmployeeStatement;
     rc = sqlite3_prepare_v2(db, addEmployeeQuery, -1, &addEmployeeStatement, nullptr);
@@ -154,7 +152,7 @@ void ChangeDataBD::addEmployee(const std::string& fullName, int experience, int 
 
     sqlite3_finalize(addEmployeeStatement);
 }
-//Добавить отдел
+
 void ChangeDataBD::addDepartment(int departmentNumber, const std::string& title) {
     const char* addDepartmentQuery = "INSERT INTO Departments (DepartmentNumber, Title) VALUES (?, ?)";
     sqlite3_stmt* addDepartmentStatement;
@@ -175,7 +173,7 @@ void ChangeDataBD::addDepartment(int departmentNumber, const std::string& title)
 
     sqlite3_finalize(addDepartmentStatement);
 }
-//Добавить должность
+
 void ChangeDataBD::addPosition(int positionId, const std::string& title) {
     const char* addPositionQuery = "INSERT INTO Positions (PositionId, Title) VALUES (?, ?)";
     sqlite3_stmt* addPositionStatement;
@@ -196,7 +194,7 @@ void ChangeDataBD::addPosition(int positionId, const std::string& title) {
 
     sqlite3_finalize(addPositionStatement);
 }
-//Добавить задачу
+
 void ChangeDataBD::addTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate,
     const std::string& dueDate, int issuedById) {
     const char* addTaskQuery = "INSERT INTO Tasks (TaskNumber, DepartmentForAssignment, AssignmentDate, DueDate, IssuedById) "
@@ -223,8 +221,8 @@ void ChangeDataBD::addTask(int taskNumber, int departmentForAssignment, const st
 
     sqlite3_finalize(addTaskStatement);
 }
-//Назначить задачу
-void ChangeDataBD::giveTask(int taskNumber, int executorId, const std::string& assignmentTakenDate) {
+
+void ChangeDataBD::takeTask(int taskNumber, int executorId, const std::string& assignmentTakenDate) {
     const char* takeTaskQuery = "UPDATE Tasks SET ExecutorId = ?, IsTaken = 1, AssignmentTakenDate = ? WHERE TaskNumber = ?";
     sqlite3_stmt* takeTaskStatement;
 
@@ -245,7 +243,7 @@ void ChangeDataBD::giveTask(int taskNumber, int executorId, const std::string& a
 
     sqlite3_finalize(takeTaskStatement);
 }
-//Изменить название отдела по id
+
 void ChangeDataBD::changeDepartmentTitle(int departmentNumber, const std::string& newTitle) {
     const char* changeDepartmentQuery = "UPDATE Departments SET Title = ? WHERE DepartmentNumber = ?";
     sqlite3_stmt* changeDepartmentStatement;
@@ -266,7 +264,7 @@ void ChangeDataBD::changeDepartmentTitle(int departmentNumber, const std::string
 
     sqlite3_finalize(changeDepartmentStatement);
 }
-//Изменить название должности по id
+
 void ChangeDataBD::changePositionTitle(int positionId, const std::string& newTitle) {
     const char* changePositionQuery = "UPDATE Positions SET Title = ? WHERE PositionId = ?";
     sqlite3_stmt* changePositionStatement;
@@ -287,7 +285,7 @@ void ChangeDataBD::changePositionTitle(int positionId, const std::string& newTit
 
     sqlite3_finalize(changePositionStatement);
 }
-//Изменить содержание задачи по id
+
 void ChangeDataBD::updateTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate,
     const std::string& dueDate, int issuedById, const std::string& assignmentTakenDate,
     int executorId, int isCompleted, const std::string& actualCompletionDate) {
@@ -319,7 +317,7 @@ void ChangeDataBD::updateTask(int taskNumber, int departmentForAssignment, const
 
     sqlite3_finalize(updateTaskStatement);
 }
-//Изменить параметры сотрудника по id
+
 void ChangeDataBD::changeEmployee(int employeeId, const std::string& fullName, int experience,
     int department, int positionId) {
     const char* changeEmployeeQuery = "UPDATE Employees SET FullName = ?, Experience = ?, "
@@ -345,7 +343,6 @@ void ChangeDataBD::changeEmployee(int employeeId, const std::string& fullName, i
 
     sqlite3_finalize(changeEmployeeStatement);
 }
-//для заполнения вектора данными из таблицы
 static int callback(void* data, int argc, char** argv, char** azColName) {
     std::vector<std::string> row;
 
@@ -358,8 +355,6 @@ static int callback(void* data, int argc, char** argv, char** azColName) {
 
     return 0;
 }
-
-//Получить таблицу отделов
 std::vector<std::vector<std::string>> ChangeDataBD::getDepartments() {
     std::vector<std::vector<std::string>> result;
 
@@ -375,7 +370,6 @@ std::vector<std::vector<std::string>> ChangeDataBD::getDepartments() {
 
     return result;
 }
-//Получить таблицу должностей
 std::vector<std::vector<std::string>> ChangeDataBD::getPositions() {
     std::vector<std::vector<std::string>> result;
 
@@ -391,7 +385,6 @@ std::vector<std::vector<std::string>> ChangeDataBD::getPositions() {
 
     return result;
 }
-//Получить таблицу сотрудников
 std::vector<std::vector<std::string>> ChangeDataBD::getEmployees() {
     std::vector<std::vector<std::string>> result;
 
@@ -407,7 +400,6 @@ std::vector<std::vector<std::string>> ChangeDataBD::getEmployees() {
 
     return result;
 }
-//Получить таблицу пользователей
 std::vector<std::vector<std::string>> ChangeDataBD::getUsers() {
     std::vector<std::vector<std::string>> result;
 
@@ -423,23 +415,6 @@ std::vector<std::vector<std::string>> ChangeDataBD::getUsers() {
 
     return result;
 }
-//Получить таблицу задач
-std::vector<std::vector<std::string>> ChangeDataBD::getTasks() {
-    std::vector<std::vector<std::string>> result;
-
-    const char* query = "SELECT * FROM Tasks;";
-    char* errMsg = nullptr;
-
-    int rc = sqlite3_exec(db, query, callback, &result, &errMsg);
-
-    if (rc != SQLITE_OK) {
-        std::cerr << "SQL error: " << errMsg << std::endl;
-        sqlite3_free(errMsg);
-    }
-
-    return result;
-}
-//Проверить логин пароль и вернуть должность если есть, если нет вернуть 0(вообще там своя ошибка возвращается до того как вернется 0)
 int ChangeDataBD::getEmployeePositionId(const std::string& login, const std::string& password) {
     const char* query = "SELECT e.PositionId FROM Users u JOIN Employees e ON u.EmployeeId = e.EmployeeId "
         "WHERE u.Login = ? AND u.Password = ?;";
@@ -467,7 +442,6 @@ int ChangeDataBD::getEmployeePositionId(const std::string& login, const std::str
         return 0;
     }
 }
-//Получить таблицу задач
 std::vector<std::vector<std::string>> ChangeDataBD::getTasks() {
     std::vector<std::vector<std::string>> result;
 
@@ -499,7 +473,7 @@ std::vector<std::vector<std::string>> ChangeDataBD::getTasks() {
 
     return result;
 }
-//Взята ли таска
+//����� �� �����
 bool ChangeDataBD::isTaskTaken(int taskNumber) {
     const char* query = "SELECT IsTaken FROM Tasks WHERE TaskNumber = ?;";
     sqlite3_stmt* statement;
@@ -507,7 +481,7 @@ bool ChangeDataBD::isTaskTaken(int taskNumber) {
     int rc = sqlite3_prepare_v2(db, query, -1, &statement, nullptr);
     if (rc != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-        return false; // Ошибка при подготовке запроса
+        return false; // ������ ��� ���������� �������
     }
 
     sqlite3_bind_int(statement, 1, taskNumber);
@@ -516,7 +490,7 @@ bool ChangeDataBD::isTaskTaken(int taskNumber) {
     if (rc != SQLITE_ROW) {
         std::cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << std::endl;
         sqlite3_finalize(statement);
-        return false; // Ошибка при выполнении запроса
+        return false; // ������ ��� ���������� �������
     }
 
     int isTaken = sqlite3_column_int(statement, 0);
@@ -525,5 +499,4 @@ bool ChangeDataBD::isTaskTaken(int taskNumber) {
 
     return (isTaken == 1);
 }
-//Обязательно srand(time(NULL)); в main без него не будут случайно генериться все что генериться!!!!!!!!!!!!
 

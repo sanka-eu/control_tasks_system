@@ -2,7 +2,6 @@
 #define CHANGEDATABD_H
 
 #include <src/application/changeDataBD/sqlite/sqlite3.h>
-
 #include <string>
 #include <iostream>
 #include <vector>
@@ -13,16 +12,16 @@ class ChangeDataBD
 public:
     ChangeDataBD();
     ~ChangeDataBD();
-    void addEmployee(const std::string& fullName, int experience, int department, int positionId);//Добавить сотрудника
-    void addDepartment(int departmentNumber, const std::string& title);//Добавить отдел
-    void addPosition(int positionId, const std::string& title);//Добавить должность
-    void addTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate, //Добавить задачу
+    void addEmployee(const std::string& fullName, int experience, int department, int positionId);//Р”РѕР±Р°РІРёС‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР°
+    void addDepartment(int departmentNumber, const std::string& title);//Р”РѕР±Р°РІРёС‚СЊ РѕС‚РґРµР»
+    void addPosition(int positionId, const std::string& title);//Р”РѕР±Р°РІРёС‚СЊ РґРѕР»Р¶РЅРѕСЃС‚СЊ
+    void addTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate, //Р”РѕР±Р°РІРёС‚СЊ Р·Р°РґР°С‡Сѓ
         const std::string& dueDate, int issuedById);
     <<<<<< < HEAD
-        void takeTask(int taskNumber, int executorId, const std::string & assignmentTakenDate);//Взять задачу(добавляет недостающие данные в таблицу задач: кто взял когда и тд, и меняет isTaken на 1)
-    void changeDepartmentTitle(int departmentNumber, const std::string& newTitle);//Изменить название отдела по id
-    void changePositionTitle(int positionId, const std::string& newTitle);//Изменить название должности по id
-    void updateTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate, //Изменить данные в задаче по id
+        void takeTask(int taskNumber, int executorId, const std::string & assignmentTakenDate);//Р’Р·СЏС‚СЊ Р·Р°РґР°С‡Сѓ(РґРѕР±Р°РІР»СЏРµС‚ РЅРµРґРѕСЃС‚Р°СЋС‰РёРµ РґР°РЅРЅС‹Рµ РІ С‚Р°Р±Р»РёС†Сѓ Р·Р°РґР°С‡: РєС‚Рѕ РІР·СЏР» РєРѕРіРґР° Рё С‚Рґ, Рё РјРµРЅСЏРµС‚ isTaken РЅР° 1)
+    void changeDepartmentTitle(int departmentNumber, const std::string& newTitle);//РР·РјРµРЅРёС‚СЊ РЅР°Р·РІР°РЅРёРµ РѕС‚РґРµР»Р° РїРѕ id
+    void changePositionTitle(int positionId, const std::string& newTitle);//РР·РјРµРЅРёС‚СЊ РЅР°Р·РІР°РЅРёРµ РґРѕР»Р¶РЅРѕСЃС‚Рё РїРѕ id
+    void updateTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate, //РР·РјРµРЅРёС‚СЊ РґР°РЅРЅС‹Рµ РІ Р·Р°РґР°С‡Рµ РїРѕ id
         ====== =
         void giveTask(int taskNumber, int executorId, const std::string & assignmentTakenDate);
     void changeDepartmentTitle(int departmentNumber, const std::string& newTitle);
@@ -31,15 +30,15 @@ public:
         >>>>>> > d1a2ebb2748792ccd703ed44f0f76d8012b50507
         const std::string& dueDate, int issuedById, const std::string& assignmentTakenDate,
         int executorId, int isCompleted, const std::string& actualCompletionDate);
-    void changeEmployee(int employeeId, const std::string& fullName, int experience, // Изменить данные сотрудника по id
+    void changeEmployee(int employeeId, const std::string& fullName, int experience, // РР·РјРµРЅРёС‚СЊ РґР°РЅРЅС‹Рµ СЃРѕС‚СЂСѓРґРЅРёРєР° РїРѕ id
         int department, int positionId);
-    std::vector<std::vector<std::string>> getDepartments();//Получить таблицу Отделы
-    std::vector<std::vector<std::string>> getPositions();//Получить таблицу должности
-    std::vector<std::vector<std::string>> getEmployees();//Получить таблицу сотрудники
-    std::vector<std::vector<std::string>> getUsers();//Получить таблицу пользователи
-    std::vector<std::vector<std::string>> getTasks();//Получить таблицу задачи
-    int getEmployeePositionId(const std::string& login, const std::string& password);///Проверить логин пароль и вернуть должность если есть, если нет вернуть 0(вообще там своя ошибка возвращается до того как вернется 0)
-    bool isTaskTaken(int taskNumber);//Проверить взята ли задача
+    std::vector<std::vector<std::string>> getDepartments();//РџРѕР»СѓС‡РёС‚СЊ С‚Р°Р±Р»РёС†Сѓ РћС‚РґРµР»С‹
+    std::vector<std::vector<std::string>> getPositions();//РџРѕР»СѓС‡РёС‚СЊ С‚Р°Р±Р»РёС†Сѓ РґРѕР»Р¶РЅРѕСЃС‚Рё
+    std::vector<std::vector<std::string>> getEmployees();//РџРѕР»СѓС‡РёС‚СЊ С‚Р°Р±Р»РёС†Сѓ СЃРѕС‚СЂСѓРґРЅРёРєРё
+    std::vector<std::vector<std::string>> getUsers();//РџРѕР»СѓС‡РёС‚СЊ С‚Р°Р±Р»РёС†Сѓ РїРѕР»СЊР·РѕРІР°С‚РµР»Рё
+    std::vector<std::vector<std::string>> getTasks();//РџРѕР»СѓС‡РёС‚СЊ С‚Р°Р±Р»РёС†Сѓ Р·Р°РґР°С‡Рё
+    int getEmployeePositionId(const std::string& login, const std::string& password);///РџСЂРѕРІРµСЂРёС‚СЊ Р»РѕРіРёРЅ РїР°СЂРѕР»СЊ Рё РІРµСЂРЅСѓС‚СЊ РґРѕР»Р¶РЅРѕСЃС‚СЊ РµСЃР»Рё РµСЃС‚СЊ, РµСЃР»Рё РЅРµС‚ РІРµСЂРЅСѓС‚СЊ 0(РІРѕРѕР±С‰Рµ С‚Р°Рј СЃРІРѕСЏ РѕС€РёР±РєР° РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РґРѕ С‚РѕРіРѕ РєР°Рє РІРµСЂРЅРµС‚СЃСЏ  0   )
+    bool isTaskTaken(int taskNumber);//РџСЂРѕРІРµСЂРёС‚СЊ РІР·СЏС‚Р° Р»Рё Р·Р°РґР°С‡Р°
 private:
     sqlite3* db;
     bool executeNonQuery(const char* query);

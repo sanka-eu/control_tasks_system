@@ -13,21 +13,11 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetDefaultConstraint</enum>
-     </property>
-     <item>
-      <widget class="QPushButton" name="changeUserDataButton">
-       <property name="text">
-        <string>Добавить/удалить пользователя</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="changeAssigmentsDataButton">
+  <layout class="QGridLayout" name="gridLayout_4">
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="1" column="1">
+      <widget class="QPushButton" name="giveTaskButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -35,7 +25,41 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Добавить/удалить поручение</string>
+        <string>Назначить поручение</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QPushButton" name="addEmployeeButton">
+       <property name="text">
+        <string>Добавить сотрудника</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="removeEmployeeButton">
+       <property name="text">
+        <string>Удалить сотрудника</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="2">
+      <widget class="QPushButton" name="changeUserByIdButton">
+       <property name="text">
+        <string>Изменить параметры сотрудника по ID</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="addTaskButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Добавить поручение</string>
        </property>
       </widget>
      </item>

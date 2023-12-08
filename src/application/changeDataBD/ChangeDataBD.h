@@ -18,7 +18,7 @@ public:
     void addPosition(int positionId, const std::string& title);
     void addTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate,
         const std::string& dueDate, int issuedById);
-    void takeTask(int taskNumber, int executorId, const std::string& assignmentTakenDate);
+    void giveTask(int taskNumber, int executorId, const std::string& assignmentTakenDate);
     void changeDepartmentTitle(int departmentNumber, const std::string& newTitle);
     void changePositionTitle(int positionId, const std::string& newTitle);
     void updateTask(int taskNumber, int departmentForAssignment, const std::string& assignmentDate,

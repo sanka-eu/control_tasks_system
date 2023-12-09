@@ -47,6 +47,15 @@ void MainWindow::ShowAllTasksSlot()
     {
         m_ui->tableWidget->setRowCount(tasksTable.size());
         m_ui->tableWidget->setColumnCount(tasksTable.at(0).size());
+
+        QStringList tableHeader = {"Id задачи", "Департамент", "Дата назначения", "Дата исполнения", "Назначен исполнитель", "Просрочен срок исполнения", "Кто назначил", "Дата взятия задачи", "Исполнитель", "Дата назначения"};
+        m_ui->tableWidget->setHorizontalHeaderLabels(tableHeader);
+        m_ui->tableWidget->verticalHeader()->hide();
+
+        m_ui->tableWidget->setColumnWidth(3, 150);
+        m_ui->tableWidget->setColumnWidth(4, 150);
+        m_ui->tableWidget->setColumnWidth(5, 180);
+        m_ui->tableWidget->setColumnWidth(7, 150);
     }
     
     int rowNumber = 0;

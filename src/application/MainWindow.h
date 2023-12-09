@@ -31,7 +31,7 @@ private slots:
     void ShowAllTasksSlot();
 
 private:
-    int m_positionUserId;
+    int m_positionUserId = 0;
 
     std::shared_ptr<Ui::MainWindow> m_ui;
     std::shared_ptr<ChangeDataBD> m_dataBase;

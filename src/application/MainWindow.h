@@ -25,13 +25,18 @@ public:
     MainWindow(QWidget *parent = 0);
 
 private slots:
+    void LoginUser(int positionUserId);
     void ChangeUserSlot();
     void ChangeDataSlot();
     void ShowAllTasksSlot();
 
 private:
+    int m_positionUserId;
+
     std::shared_ptr<Ui::MainWindow> m_ui;
     std::shared_ptr<ChangeDataBD> m_dataBase;
+    std::shared_ptr<LoginDialog> m_loginDialog;
+    std::shared_ptr<ChangeDataDialog> m_changeDataDialog;
 
 }; // class MainWindow
 

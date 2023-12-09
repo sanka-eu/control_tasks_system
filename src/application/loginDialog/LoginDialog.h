@@ -14,13 +14,17 @@ class LoginDialog: public QDialog
     Q_OBJECT
 
 public:
-    LoginDialog(QWidget *parent = 0);
+    LoginDialog(std::shared_ptr<ChangeDataBD> dataBase, QWidget *parent = 0);
+
+signals:
+    void UserLoggedIn(int positionUserId);
 
 private slots:
     void LoginSlot();
 
 private:
     std::shared_ptr<Ui::LoginDialog> m_ui;
+    std::shared_ptr<ChangeDataBD> m_dataBase;
 
 }; // class LoginDialog
 

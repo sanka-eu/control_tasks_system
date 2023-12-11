@@ -1,9 +1,11 @@
 #include "ChangeDataDialog.h"
 #include "ui_ChangeDataDialog.h"
 
-ChangeDataDialog::ChangeDataDialog(QWidget *parent):
+ChangeDataDialog::ChangeDataDialog(std::shared_ptr<ChangeDataBD> dataBase, QWidget *parent):
     QDialog(parent),
-    m_ui(std::make_shared<Ui::ChangeDataDialog>())
+    m_ui(std::make_shared<Ui::ChangeDataDialog>()),
+    m_dataBase(dataBase),
+    m_addEmployeeDialog(std::make_shared<AddEmployeeDialog>(m_dataBase))
 {
     m_ui->setupUi(this);
 
@@ -17,6 +19,10 @@ ChangeDataDialog::ChangeDataDialog(QWidget *parent):
 void ChangeDataDialog::AddEmployeeSlot()
 {
     qDebug("addEmployeeSlot");
+
+    m_addEmployeeDialog->exec();
+
+    Q_EMIT EmployeeAdded();
 }
 
 void ChangeDataDialog::RemoveEmployeeSlot()

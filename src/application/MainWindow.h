@@ -29,9 +29,10 @@ private slots:
     void ChangeUserSlot();
     void ChangeDataSlot();
     void ShowAllTasksSlot();
+    void AddEmployeeSlot();
 
 private:
-    int m_positionUserId = 0;
+    int m_positionUserId;
 
     std::shared_ptr<Ui::MainWindow> m_ui;
     std::shared_ptr<ChangeDataBD> m_dataBase;
